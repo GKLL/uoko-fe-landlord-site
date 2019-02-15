@@ -4,11 +4,16 @@ import App from './App.vue';
 import router from './router';
 import store from './store';
 import Axios from './plugins/axios';
+import Vueaxios from 'vue-axios';
 import Footer from '@/components/Footer.vue';
 import FastClick from 'fastclick';
 import VueLazyload from 'vue-lazyload';
 import VueLazyComponent from '@xunlei/vue-lazy-component';
+import {Toast} from 'vant';
+import 'vant/lib/index.css';
 
+
+Vue.use(Toast);
 // Intersection Observer polyfill
 require('intersection-observer');
 
@@ -22,8 +27,8 @@ if ('addEventListener' in document) {
 Vue.config.productionTip = false;
 
 // 全局注册Axios 无需在组件中引入axios，直接使用 this.$axios
-Vue.prototype.$axios = Axios;
-
+// Vue.prototype.$axios = Axios;
+Vue.use(Vueaxios, Axios);
 Vue.use(VueLazyload, {
   lazyComponent: true,
   preLoad: 0.7

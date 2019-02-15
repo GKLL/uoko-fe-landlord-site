@@ -2,8 +2,8 @@
  * @Description: Header公共组件
  * @Author: LiuZhen
  * @Date: 2018-09-18 16:19:09
- * @Last Modified by: LiuZhen
- * @Last Modified time: 2018-10-22 17:49:55
+ * @Last Modified by: chenmo
+ * @Last Modified time: 2019-02-15 10:28:48
  */
 <template>
   <header class="header" ref="header">{{title}}
