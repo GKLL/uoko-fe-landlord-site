@@ -14,7 +14,7 @@ const getBaseUrl = (env) => {
 }
 
 module.exports = {
-  baseUrl: getBaseUrl(env),
+  publicPath: getBaseUrl(env),
   assetsDir: 'static',
   configureWebpack: {
     // plugins: [

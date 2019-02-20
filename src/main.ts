@@ -9,11 +9,17 @@ import Footer from '@/components/Footer.vue';
 import FastClick from 'fastclick';
 import VueLazyload from 'vue-lazyload';
 import VueLazyComponent from '@xunlei/vue-lazy-component';
-import {Toast} from 'vant';
+import {Toast, Picker, Popup, Lazyload, Button, Field, Loading  } from 'vant';
 import 'vant/lib/index.css';
 
 
 Vue.use(Toast);
+Vue.use(Picker);
+Vue.use(Popup);
+Vue.use(Button);
+Vue.use(Lazyload);
+Vue.use(Field);
+Vue.use(Loading);
 // Intersection Observer polyfill
 require('intersection-observer');
 

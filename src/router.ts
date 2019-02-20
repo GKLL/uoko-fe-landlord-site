@@ -3,7 +3,7 @@ import Router from 'vue-router';
 // import Home from './views/Home.vue';
 import Home from './views/Home.vue';
 import { firstUpperCase } from '@/utils/utils';
-
+import { componentsList } from '@/config/config';
 Vue.use(Router);
 
 // const componentsList = [
@@ -16,24 +16,6 @@ Vue.use(Router);
 //   'reportTopic'
 // ];
 let router!: any;
-const componentsList = [
-  {
-    path: 'home',
-    title: '星空业主服务号'
-  },
-  {
-    path: 'bind',
-    title: '登录'
-  },
-  {
-    path: 'entrust',
-    title: '委托房源'
-  },
-  {
-    path: 'houseList',
-    title: '我的房源列表'
-  }
-];
 
 const loadView = (view: string) => {
   return () => import(/* webpackChunkName: "view-[request]" */ `./views/${view}.vue`);

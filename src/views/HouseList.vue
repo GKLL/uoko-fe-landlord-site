@@ -3,22 +3,18 @@
  * @Author: chenmo
  * @Date: 2019-02-15 14:43:22
  * @Last Modified by: chenmo
- * @Last Modified time: 2019-02-15 16:55:42
+ * @Last Modified time: 2019-02-18 14:25:47
  */
 
 <template>
   <section class="house">
-    <section v-if="tableData.length == 0">
-      <div class="list">
-        <h2>仁和春天国际花园</h2>
+    <section v-if="tableData.length > 0">
+      <div class="list" v-for="house in tableData" :key="house.entrustId" @click="linkTo(house)">
+        <h2>{{house.communityName || ''}}&nbsp;{{house.handleStatus === 1 ? '' : `${house.building || ''}栋${house.unit || ' '}单元${house.floorNum || ' '}楼${house.number || ' '}号` }}</h2>
         <p class="item-desc">
-          <a> 提交成功，请保持手机畅通，资产管家将尽快与您联系，您也可以直接拨打电话咨询：<i class="call-icon"></i><i class="mobile">13550223963</i></a>
-        </p>
-      </div>
-      <div class="list">
-        <h2>仁和春天国际花园</h2>
-        <p class="item-desc">
-          <a> 提交成功，请保持手机畅通，资产管家将尽快与您联系，您也可以直接拨打电话咨询：<i class="call-icon"></i><i class="mobile">13550223963</i></a>
+          <a v-if="house.handleStatus ===1"> 提交成功，请保持手机畅通，资产管家将尽快与您联系，您也可以直接拨打电话咨询：<i class="call-icon"></i><i class="mobile">{{house.
+               assetContact}}</i></a>
+          <span v-else> {{getRentType(house.consociationType)}} | {{getRentWay(house.rentWay)}} | {{house.rentRoom ? `${house.roomTotal}个房间 ${house.rentRoom}个已出租` : '待租中'}}</span>
         </p>
       </div>
     </section>
@@ -34,6 +30,7 @@ import { Component, Vue } from 'vue-property-decorator';
 import { State, Getter, Mutation, Action } from 'vuex-class';
 import CommonMixins from '@/utils/mixins/commonMixins';
 import { Field, Row, Col } from 'vant';
+import { RENT_WAY, RENT_TYPE } from '@/config/config';
 import api from '@/api';
 
 // 声明引入的组件
@@ -53,6 +50,11 @@ export default class Login extends CommonMixins {
     this.getHouseList(); // 获取房源列表
   }
 
+  /**
+   * @description 获取列表
+   * @returns void
+   * @author chenmo
+   */
   private async getHouseList() {
     this.$toast.loading({
       duration: 0,
@@ -62,15 +64,47 @@ export default class Login extends CommonMixins {
     });
     try {
       const res: any = await this.axios.get(api.getHouseList);
-      if (res && res.code === '200') {
+      if (res && res.code === '000') {
         this.tableData = res.data || [];
       } else {
-        this.$toast(res.message);
+        this.$toast.fail(`获取房源失败`);
       }
     } catch (err) {
       throw new Error(err || 'Unknow Error!');
     } finally {
       this.$toast.clear();
+    }
+  }
+
+  /**
+   * @description 过滤托管类型
+   * @params type 类型
+   * @returns string
+   * @author chenmo
+   */
+  private getRentType(type: number) {
+    return RENT_TYPE[type];
+  }
+
+  /**
+   * @description 过滤托管类型
+   * @params type 类型
+   * @returns string
+   * @author chenmo
+   */
+  private getRentWay(status: number) {
+    return RENT_WAY[status];
+  }
+
+  /**
+   * @description 已上架的房源跳转到我的房源列表
+   * @params house 房源信息
+   * @returns null
+   * @author chenmo
+   */
+  private linkTo(house: any) {
+    if (house.handleStatus !== 1) {
+      this.$router.push('/myHouse?entrustId=' + house.entrustId);
     }
   }
 }
@@ -103,6 +137,12 @@ export default class Login extends CommonMixins {
       padding: 20px 10px 20px 20px;
     .item-desc
       a
+        display inline-block
+        padding 20px 20px
+        color $next-text-color
+        font-size 12px
+        line-height 1.5
+      span
         display inline-block
         padding 20px 20px
         color $next-text-color

@@ -2,8 +2,8 @@
  * @Description: 自定义封装各种工具
  * @Author: LiuZhen
  * @Date: 2018-09-19 09:39:14
- * @Last Modified by: LiuZhen
- * @Last Modified time: 2019-01-25 11:58:57
+ * @Last Modified by: chenmo
+ * @Last Modified time: 2019-02-19 10:45:24
  */
 
 /* 首字母大写 */
@@ -173,4 +173,19 @@ export const handleDate = {
            this.getDay();
   }
 };
+
+/**
+ * @description 获取url参数
+ * @param name string 参数名
+ * @return 参数对应value
+ * @author chenmo
+ */
+export function getQueryString(name: any) {
+  const reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)');
+  const r = window.location.search.substr(1).match(reg);
+  if (r != null) {
+    return unescape(r[2]);
+  }
+  return null;
+}
 

@@ -29,7 +29,7 @@ export default new Vuex.Store({
 import Vue from 'vue';
 import Vuex, { StoreOptions } from 'vuex';
 import { RootState } from './types';
-import { echarts } from './echarts/index';
+import { global } from './global/index';
 
 Vue.use(Vuex);
 
@@ -38,7 +38,7 @@ const store: StoreOptions<RootState> = {
     version: '1.0.0'
   },
   modules: {
-    echarts
+    global
   }
 };
 

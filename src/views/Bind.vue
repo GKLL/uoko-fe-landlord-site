@@ -3,7 +3,7 @@
  * @Author: chenmo
  * @Date: 2019-02-15 13:42:19
  * @Last Modified by: chenmo
- * @Last Modified time: 2019-02-15 16:55:50
+ * @Last Modified time: 2019-02-20 15:58:52
  */
 <template>
   <section class="login">
@@ -21,18 +21,25 @@
         <p class="error-info" ref="phoneErrorInfo"></p>
       </div>
       <p class="tip">验证码</p>
-      <section class="code-box">
-        <van-field
-          v-model="code"
-          type="number"
-          placeholder="验证码"
-          class="code"
-          clearable
-        />
-        <van-button slot="button" size="normal" type="default" class="btn" v-if="!isphoneErr">发送验证码</van-button>
-        <van-button slot="button" size="normal" type="default" class="btn active" v-else @click="getCode">发送验证码</van-button>
+      <section>
+        <section class="code-box">
+          <van-field
+            v-model="code"
+            type="number"
+            placeholder="验证码"
+            class="code"
+            clearable
+          />
+          <van-button slot="button" size="normal" type="default" class="btn" v-if="!isphoneErr">发送验证码</van-button>
+          <span v-else>
+            <van-button slot="button" size="normal" type="default" class="btn" v-if="isDisabledVerfiyCodeBtn">重发({{time}})</van-button>
+            <van-button slot="button" size="normal" type="default" class="btn active" v-else @click="getCode">发送验证码</van-button>
+          </span>
+        </section>
+        <p class="error-info" ref="codeErrorInfo"></p>
       </section>
-      <van-button slot="button" size="large" type="default" class="login-btn">登录</van-button>
+      <van-button slot="button" size="large" type="default" class="login-btn" v-if="!isphoneErr || !isCodeErr">登录</van-button>
+      <van-button slot="button" size="large" type="default" class="login-btn-active" v-else @click="submitLogin" loading-text="登陆..." :loading="loading">登录</van-button>
     </section>
   </section>
 </template>
@@ -41,9 +48,11 @@
 import { Component, Vue, Watch } from 'vue-property-decorator';
 import { State, Getter, Mutation, Action } from 'vuex-class';
 import CommonMixins from '@/utils/mixins/commonMixins';
+import { handleWebStorage } from '@/utils/utils';
 import { Field, Row, Col, Button } from 'vant';
 import api from '@/api';
-
+// global vuex
+const namespace: string = 'global';
 // 声明引入的组件
 @Component({
   name: 'login',
@@ -61,9 +70,13 @@ export default class Login extends CommonMixins {
     phoneErrorInfo: HTMLFormElement,
   };
 
+  @Mutation('updateToken', { namespace }) private updateToken: any;
+
   private phone: string = '';
   private code: string = '';
   private isphoneErr: boolean = false; // 校验手机号
+  private isCodeErr: boolean = false; // 校验验证码
+  private loading: boolean = false; // 登陆按钮loading
   private time: number = 60;
   private isDisabledVerfiyCodeBtn: boolean = false; // 验证码是否发送
 
@@ -74,7 +87,12 @@ export default class Login extends CommonMixins {
    */
   private async getCode() {
     try {
-      const res: any = await this.axios.get(api.getCode + `/${this.phone}`)
+      const res: any = await this.axios.post(api.getCode + `/${this.phone}`);
+      if (res && res.code === '000') {
+        this.startCountdown(); // 开始倒计时
+      } else {
+        this.$toast('获取验证码失败');
+      }
     } catch (err) {
       throw new Error(err || 'Unknow Error!');
     }
@@ -97,6 +115,31 @@ export default class Login extends CommonMixins {
     }, 1000);
   }
 
+  /**
+   * @description 登录
+   * @return void
+   * @author chenmo
+   */
+  private async submitLogin() {
+    try {
+      this.loading = true;
+      const res: any = await this.axios.post(api.login, {
+        mobile: this.phone,
+        verificationCode: this.code,
+        registerSource: 1
+      });
+      if (res && res.code === '000') {
+        handleWebStorage.setLocalData('siteToken', res.data.access_token); // 本地存储token
+        handleWebStorage.setLocalData('userId', res.data.userId); // 本地存储userId
+        this.updateToken(res.data.access_token);
+        this.$router.push('/houseList'); // 跳转到房源列表
+      } else {
+        this.$toast.fail('登陆失败');
+      }
+    } catch (err) {
+      throw new Error(err || 'Unknow Error!');
+    }
+  }
   // Watch
   @Watch('phone')
   private handlerPhone(newVal: string) {
@@ -106,6 +149,17 @@ export default class Login extends CommonMixins {
     } else {
       this.isphoneErr = false;
       this.$refs.phoneErrorInfo.innerHTML = '请输入正确的手机号';
+    }
+  }
+
+  @Watch('code')
+  private handlerCode(newVal: string) {
+    if (newVal && /^\d{6}$/ .test(newVal)) {
+      this.$refs.codeErrorInfo.innerHTML = '';
+      this.isCodeErr = true;
+    } else {
+      this.isCodeErr = false;
+      this.$refs.codeErrorInfo.innerHTML = '请输入6位手机验证码';
     }
   }
 }
@@ -146,6 +200,8 @@ export default class Login extends CommonMixins {
       padding 0 24px
       width 100%
       border-radius 4px
+      &::after
+        border-bottom: 0 !important
     .code-box
       display -webkit-flex
       display flex
@@ -165,8 +221,9 @@ export default class Login extends CommonMixins {
         padding 0 24px
         width 50%
         border-radius 4px
-        margin-bottom 20px
         margin-right vw(20)
+        &::after
+          border-bottom: 0 !important
       .btn 
         height 56px
         line-height 56px
@@ -180,4 +237,10 @@ export default class Login extends CommonMixins {
       color #fff
       background rgb(216, 216, 216)
       border-radius 4px
+      margin-top vw(20)
+    .login-btn-active
+      color #fff
+      background $main-color
+      border-radius 4px
+      margin-top vw(20)
 </style>

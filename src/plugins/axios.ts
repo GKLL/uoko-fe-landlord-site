@@ -3,13 +3,14 @@
  * @Author: LiuZhen
  * @Date: 2018-09-18 11:49:38
  * @Last Modified by: chenmo
- * @Last Modified time: 2019-02-15 17:22:42
+ * @Last Modified time: 2019-02-20 18:02:17
  */
 import axios from 'axios';
 import store from '../store';
 import router from '../router';
+import Vue from 'vue';
 const Axios = axios.create({
-  timeout: 5000,
+  timeout: 20000,
   headers: {
     'X-Requested-With': 'XMLHttpRequest'
   }
@@ -30,8 +31,9 @@ Axios.interceptors.request.use(
     /*登录授权, 登录接口修改 Authorization */
     if (config.url.indexOf('/auth/login/web/mobile') > -1 || config.url.indexOf('/verification_code') > -1) {
       config.headers.Authorization = 'Basic b3duZXI6MTIzNDU2';
+    } else {
+      config.headers.Authorization = `Bearer ${store.getters['global/getToken']}`;
     }
-    console.log(config)
     return config;
   }, (error) => {
     return Promise.reject(error);
@@ -47,8 +49,26 @@ Axios.interceptors.response.use(
         path: '/bind'
       });
     }
-    return response;
+    return response.data;
   }, (error) => {
+    const config: any = error.config;
+    const status: any = error.response.status;
+    if (status === 401) {
+      router.push({
+        path: '/bind'
+      });
+      Vue.prototype.$toast({
+        duration: 3,       // 持续展示 toast
+        type: 'fail',
+        message: `登陆失效，请重新登录`
+      });
+    } else {
+      Vue.prototype.$toast({
+        duration: 3,       // 持续展示 toast
+        type: 'fail',
+        message: `服务器异常`
+      });
+    }
     return Promise.reject(error);
   }
 );
